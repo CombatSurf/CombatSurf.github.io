@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CombatSurf - Login/Register</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="images/logo.png" alt="CombatSurf Logo" id="logo-img">
+    </div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="login.html" class="active">log/reg</a></li>
+        <li><a href="index.html">home<br>home wb</a></li>
+        <li><a href="rap-price.html">rap<br>price</a></li>
+        <li><a href="skins.html">index skins<br>value & Previews</a></li>
+        <li><a href="https://discord.gg/combatsurf" target="_blank">discord comunity<br>roblox group</a></li>
+        <li><a href="updates.html">updates<br>changelog</a></li>
+        <li><a href="comments.html">comments<br>people's comments</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="auth-container">
+      <div class="auth-tabs">
+        <button class="tab-btn active" onclick="showTab('login')">Login</button>
+        <button class="tab-btn" onclick="showTab('register')">Register</button>
+      </div>
+      
+      <div id="login-form" class="auth-form active">
+        <h2>Login to your account</h2>
+        <form>
+          <div class="form-group">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" required>
+          </div>
+          <button type="submit" class="auth-btn">Login</button>
+        </form>
+      </div>
+      
+      <div id="register-form" class="auth-form">
+        <h2>Create a new account</h2>
+        <form>
+          <div class="form-group">
+            <label for="register-username">Username</label>
+            <input type="text" id="register-username" required>
+          </div>
+          <div class="form-group">
+            <label for="register-email">Email</label>
+            <input type="email" id="register-email" required>
+          </div>
+          <div class="form-group">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" required>
+          </div>
+          <div class="form-group">
+            <label for="register-confirm">Confirm Password</label>
+            <input type="password" id="register-confirm" required>
+          </div>
+          <button type="submit" class="auth-btn">Register</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Dev Website Brownuser_</p>
+  </footer>
+
+  <script>
+    function showTab(tabName) {
+      // Ocultar todos los formularios
+      document.querySelectorAll('.auth-form').forEach(form => {
+        form.classList.remove('active');
+      });
+      
+      // Desactivar todos los botones de pestañas
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // Mostrar el formulario seleccionado
+      document.getElementById(tabName + '-form').classList.add('active');
+      
+      // Activar el botón de pestaña seleccionado
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>
