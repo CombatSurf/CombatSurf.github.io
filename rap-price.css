@@ -1,11 +1,11 @@
-/* Estilos para la página de actualizaciones */
-.updates-section {
-  max-width: 800px;
+/* Estilos para la página de RAP Price */
+.rap-price-section {
+  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
 }
 
-.updates-section h1 {
+.rap-price-section h1 {
   text-align: center;
   margin-bottom: 10px;
   color: var(--primary-color);
@@ -81,8 +81,8 @@
   background-color: #d32f2f;
 }
 
-/* Formulario para añadir actualizaciones */
-.update-form-container {
+/* Formulario para añadir precios RAP */
+.rap-form-container {
   background-color: #fff;
   border-radius: 12px;
   padding: 20px;
@@ -91,12 +91,12 @@
   transition: var(--transition);
 }
 
-.update-form-container:hover {
+.rap-form-container:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(0, 102, 204, 0.15);
 }
 
-.update-form-container h3 {
+.rap-form-container h3 {
   margin-bottom: 15px;
   color: #333;
   font-size: 18px;
@@ -105,17 +105,28 @@
   gap: 10px;
 }
 
-.update-form-container h3 i {
+.rap-form-container h3 i {
   color: var(--primary-color);
 }
 
-#update-form {
+#rap-form {
   display: flex;
   flex-direction: column;
 }
 
 .form-group {
   margin-bottom: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
 }
 
 .form-group label {
@@ -126,6 +137,7 @@
 }
 
 .form-group input,
+.form-group select,
 .form-group textarea {
   width: 100%;
   padding: 12px 15px;
@@ -137,11 +149,12 @@
 }
 
 .form-group textarea {
-  min-height: 150px;
+  min-height: 100px;
   resize: vertical;
 }
 
 .form-group input:focus,
+.form-group select:focus,
 .form-group textarea:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
@@ -195,15 +208,15 @@
   transform: none;
 }
 
-/* Lista de actualizaciones */
-.updates-container {
+/* Lista de precios RAP */
+.rap-container {
   background-color: #fff;
   border-radius: 12px;
   padding: 20px;
   box-shadow: var(--shadow);
 }
 
-.updates-header {
+.rap-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -212,7 +225,7 @@
   gap: 15px;
 }
 
-.updates-header h3 {
+.rap-header h3 {
   color: #333;
   font-size: 18px;
   display: flex;
@@ -221,8 +234,8 @@
   margin: 0;
 }
 
-/* Pestañas de fuente de actualizaciones */
-.updates-source-tabs {
+/* Pestañas de fuente de precios */
+.rap-source-tabs {
   display: flex;
   gap: 10px;
 }
@@ -252,14 +265,51 @@
   cursor: not-allowed;
 }
 
-/* Filtros de actualizaciones */
-.updates-filter {
+/* Filtros y búsqueda */
+.rap-filter {
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
   flex-wrap: wrap;
+  gap: 15px;
   border-bottom: 1px solid #eee;
   padding-bottom: 15px;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  max-width: 300px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 15px 10px 35px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.search-box input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+  outline: none;
+}
+
+.search-box i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .filter-btn {
@@ -284,135 +334,276 @@
   border-color: var(--primary-color);
 }
 
-/* Elementos de actualización */
-.update-item {
-  padding: 20px;
-  border-bottom: 1px solid #eee;
-  transition: var(--transition);
-  animation: fadeIn 0.5s ease;
+/* Tabla de precios RAP */
+.rap-list-container {
   position: relative;
+  overflow-x: auto;
 }
 
-.update-item:last-child {
-  border-bottom: none;
+.rap-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.update-item:hover {
+.rap-table th {
+  background-color: #f5f8ff;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #eee;
+}
+
+.rap-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.rap-item {
+  transition: var(--transition);
+}
+
+.rap-item:hover {
   background-color: #f9f9f9;
 }
 
-.update-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
+/* Celdas específicas */
+.item-cell {
+  min-width: 200px;
 }
 
-.update-title-container {
+.item-info {
   display: flex;
   align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.update-title {
-  font-size: 18px;
-  color: #333;
-  margin: 0;
+.item-image,
+.item-image-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  background-color: #f5f5f5;
 }
 
-.update-version {
-  font-size: 14px;
+.item-image-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #aaa;
+}
+
+.item-name {
+  font-weight: 500;
+}
+
+.type-cell {
+  width: 100px;
+}
+
+.type-badge {
+  display: inline-block;
   padding: 4px 8px;
   border-radius: 4px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.major .update-version {
-  background-color: rgba(76, 175, 80, 0.1);
-  color: #388e3c;
+.type-badge.weapon {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #d32f2f;
 }
 
-.minor .update-version {
+.type-badge.skin {
+  background-color: rgba(156, 39, 176, 0.1);
+  color: #7b1fa2;
+}
+
+.type-badge.accessory {
   background-color: rgba(33, 150, 243, 0.1);
   color: #1976d2;
 }
 
-.source-badge {
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 500;
+.type-badge.other {
+  background-color: rgba(158, 158, 158, 0.1);
+  color: #757575;
 }
 
-.source-badge.local {
-  background-color: rgba(76, 175, 80, 0.1);
-  color: #388e3c;
+.price-cell,
+.value-cell {
+  width: 120px;
+  text-align: right;
 }
 
-.source-badge.github {
-  background-color: rgba(36, 41, 46, 0.1);
-  color: #24292e;
+.price-value,
+.value-value {
+  font-weight: 600;
 }
 
-.update-date {
+.price-value::after,
+.value-value::after {
+  content: " R$";
+  font-weight: normal;
   color: #888;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
 }
 
-.update-content {
-  line-height: 1.6;
-  color: #555;
-  margin-bottom: 15px;
+.actions-cell {
+  width: 100px;
+  text-align: right;
+  white-space: nowrap;
 }
 
-.update-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
+.view-btn,
 .delete-btn {
   background: none;
   border: none;
-  color: #d32f2f;
-  font-size: 12px;
-  cursor: pointer;
-  padding: 5px 10px;
+  width: 32px;
+  height: 32px;
   border-radius: 4px;
+  cursor: pointer;
   transition: var(--transition);
-  display: flex;
+  display: inline-flex;
+  justify-content: center;
   align-items: center;
-  gap: 5px;
+}
+
+.view-btn {
+  color: var(--primary-color);
+}
+
+.view-btn:hover {
+  background-color: rgba(0, 102, 204, 0.1);
+}
+
+.delete-btn {
+  color: #d32f2f;
 }
 
 .delete-btn:hover {
   background-color: rgba(211, 47, 47, 0.1);
 }
 
-/* Mensaje cuando no hay actualizaciones */
-.no-updates-message,
-.loading-indicator,
-.error-message {
-  display: flex;
+/* Mensaje cuando no hay elementos */
+.no-items-message {
+  display: none;
   flex-direction: column;
   align-items: center;
   padding: 30px 0;
   color: #888;
 }
 
-.no-updates-message i,
-.loading-indicator i,
-.error-message i {
+.no-items-message i {
   font-size: 40px;
   margin-bottom: 15px;
   opacity: 0.5;
 }
 
-.error-message i {
-  color: #d32f2f;
+/* Modal de detalles */
+.rap-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.rap-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.rap-modal-content {
+  background-color: white;
+  border-radius: 12px;
+  padding: 25px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+  position: relative;
+}
+
+.rap-modal.show .rap-modal-content {
+  transform: translateY(0);
+}
+
+.close-modal {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 24px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.close-modal:hover {
+  color: #333;
+}
+
+.rap-modal h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 22px;
+  padding-right: 30px;
+}
+
+.rap-modal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 8px;
+  background-color: #f5f5f5;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.detail-item.full-width {
+  grid-column: span 2;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #666;
+  font-size: 14px;
+}
+
+.detail-value {
+  font-size: 16px;
+}
+
+.detail-description {
+  margin: 0;
+  line-height: 1.5;
+  color: #555;
 }
 
 /* Animaciones */
@@ -424,19 +615,6 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-.highlight {
-  animation: highlight 1.5s ease;
-}
-
-@keyframes highlight {
-  0% {
-    background-color: rgba(0, 102, 204, 0.2);
-  }
-  100% {
-    background-color: transparent;
   }
 }
 
@@ -457,13 +635,22 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .update-header {
+  .rap-filter {
     flex-direction: column;
-    gap: 10px;
+    align-items: stretch;
   }
 
-  .update-date {
-    margin-top: 5px;
+  .search-box {
+    max-width: none;
+  }
+
+  .filter-buttons {
+    justify-content: center;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 15px;
   }
 
   .github-config-container {
@@ -476,7 +663,7 @@
     justify-content: center;
   }
 
-  .updates-header {
+  .rap-header {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -491,7 +678,11 @@
     justify-content: center;
   }
 
-  .updates-filter {
-    justify-content: center;
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-item.full-width {
+    grid-column: span 1;
   }
 }

@@ -38,6 +38,17 @@
       <h1>Updates & Changelog</h1>
       <p class="section-description">Stay up to date with the latest changes and improvements to CombatSurf</p>
       
+      <!-- Configuración de GitHub -->
+      <div class="github-config-container">
+        <div class="github-status">
+          <span id="github-status-indicator" class="status-indicator"></span>
+          <span id="github-status-text">GitHub Status: Not Connected</span>
+        </div>
+        <button id="github-connect-btn" class="github-btn">
+          <i class="fab fa-github"></i> Connect to GitHub
+        </button>
+      </div>
+      
       <!-- Formulario para añadir actualizaciones (solo para administradores) -->
       <div class="auth-status logged-in admin-only">
         <div class="update-form-container">
@@ -55,13 +66,31 @@
               <label for="update-content">Content</label>
               <textarea id="update-content" placeholder="Describe the changes..." required></textarea>
             </div>
-            <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Publish Update</button>
+            <div class="form-actions">
+              <div class="storage-options">
+                <label>
+                  <input type="radio" name="storage" value="local" checked> Local Storage
+                </label>
+                <label>
+                  <input type="radio" name="storage" value="github"> GitHub
+                </label>
+              </div>
+              <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Publish Update</button>
+            </div>
           </form>
         </div>
       </div>
       
       <!-- Lista de actualizaciones -->
       <div class="updates-container">
+        <div class="updates-header">
+          <h3><i class="fas fa-history"></i> Update History</h3>
+          <div class="updates-source-tabs">
+            <button class="source-tab active" data-source="local">Local Updates</button>
+            <button class="source-tab" data-source="github">GitHub Updates</button>
+          </div>
+        </div>
+        
         <div class="updates-filter">
           <button class="filter-btn active" data-filter="all">All Updates</button>
           <button class="filter-btn" data-filter="major">Major Updates</button>
@@ -84,18 +113,373 @@
   </footer>
 
   <script src="auth.js"></script>
+  <script src="github-api.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Inicializar la interfaz según el rol del usuario
-      updateAdminUI();
+      // Variables para el estado actual
+      let currentSource = 'local';
+      let currentFilter = 'all';
+      
+      // Elementos de la interfaz
+      const updatesList = document.getElementById('updates-list');
+      const updateForm = document.getElementById('update-form');
+      const githubConnectBtn = document.getElementById('github-connect-btn');
+      const githubStatusIndicator = document.getElementById('github-status-indicator');
+      const githubStatusText = document.getElementById('github-status-text');
+      const sourceTabs = document.querySelectorAll('.source-tab');
+      const filterButtons = document.querySelectorAll('.filter-btn');
+      
+      // Actualizar el estado de GitHub
+      function updateGitHubStatus() {
+        if (isGitHubAuthenticated()) {
+          githubStatusIndicator.className = 'status-indicator connected';
+          githubStatusText.textContent = `GitHub Status: Connected to ${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`;
+          githubConnectBtn.textContent = 'Disconnect from GitHub';
+          githubConnectBtn.classList.add('disconnect');
+          
+          // Habilitar la opción de GitHub
+          document.querySelector('input[value="github"]').disabled = false;
+          
+          // Habilitar la pestaña de GitHub
+          document.querySelector('.source-tab[data-source="github"]').classList.remove('disabled');
+        } else {
+          githubStatusIndicator.className = 'status-indicator disconnected';
+          githubStatusText.textContent = 'GitHub Status: Not Connected';
+          githubConnectBtn.innerHTML = '<i class="fab fa-github"></i> Connect to GitHub';
+          githubConnectBtn.classList.remove('disconnect');
+          
+          // Deshabilitar la opción de GitHub
+          document.querySelector('input[value="github"]').disabled = true;
+          
+          // Deshabilitar la pestaña de GitHub
+          document.querySelector('.source-tab[data-source="github"]').classList.add('disabled');
+          
+          // Si la pestaña de GitHub está activa, cambiar a local
+          if (currentSource === 'github') {
+            switchSource('local');
+          }
+        }
+      }
+      
+      // Conectar/Desconectar de GitHub
+      githubConnectBtn.addEventListener('click', function() {
+        if (isGitHubAuthenticated()) {
+          // Desconectar
+          sessionStorage.removeItem('githubToken');
+          localStorage.removeItem('githubConfig');
+          window.location.reload();
+        } else {
+          // Conectar
+          authenticateWithGitHub();
+        }
+      });
+      
+      // Cambiar entre fuentes de actualizaciones
+      sourceTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const source = this.dataset.source;
+          
+          // Verificar si la pestaña está deshabilitada
+          if (this.classList.contains('disabled')) {
+            return;
+          }
+          
+          switchSource(source);
+        });
+      });
+      
+      function switchSource(source) {
+        // Actualizar pestañas
+        sourceTabs.forEach(tab => {
+          if (tab.dataset.source === source) {
+            tab.classList.add('active');
+          } else {
+            tab.classList.remove('active');
+          }
+        });
+        
+        // Actualizar fuente actual
+        currentSource = source;
+        
+        // Cargar actualizaciones
+        loadUpdates();
+      }
+      
+      // Configurar filtros
+      filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // Quitar clase activa de todos los botones
+          filterButtons.forEach(btn => btn.classList.remove('active'));
+          
+          // Añadir clase activa al botón clickeado
+          this.classList.add('active');
+          
+          // Aplicar filtro
+          currentFilter = this.dataset.filter;
+          filterUpdates();
+        });
+      });
       
       // Cargar actualizaciones
-      loadUpdates();
+      async function loadUpdates() {
+        // Mostrar indicador de carga
+        updatesList.innerHTML = `
+          <div class="loading-indicator">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading updates...</p>
+          </div>
+        `;
+        
+        try {
+          let updates = [];
+          
+          if (currentSource === 'local') {
+            // Cargar desde localStorage
+            updates = JSON.parse(localStorage.getItem('updates') || '[]');
+          } else if (currentSource === 'github' && isGitHubAuthenticated()) {
+            // Cargar desde GitHub
+            updates = await loadUpdatesFromGitHub();
+          }
+          
+          // Limpiar el contenedor
+          updatesList.innerHTML = '';
+          
+          if (updates.length === 0) {
+            updatesList.innerHTML = `
+              <div class="no-updates-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>No updates available yet.</p>
+              </div>
+            `;
+            return;
+          }
+          
+          // Ordenar actualizaciones por fecha (más recientes primero)
+          updates.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          
+          // Añadir la fuente a cada actualización si no la tiene
+          updates.forEach(update => {
+            if (!update.source) {
+              update.source = currentSource;
+            }
+          });
+          
+          // Mostrar cada actualización
+          updates.forEach(update => {
+            const updateElement = createUpdateElement(update);
+            updatesList.appendChild(updateElement);
+          });
+          
+          // Aplicar filtro actual
+          filterUpdates();
+        } catch (error) {
+          console.error('Error loading updates:', error);
+          updatesList.innerHTML = `
+            <div class="error-message">
+              <i class="fas fa-exclamation-triangle"></i>
+              <p>Error loading updates. Please try again later.</p>
+            </div>
+          `;
+        }
+      }
+      
+      // Crear elemento de actualización
+      function createUpdateElement(update) {
+        const updateDiv = document.createElement('div');
+        const updateType = getUpdateType(update.version);
+        
+        updateDiv.className = `update-item ${updateType}`;
+        updateDiv.dataset.id = update.id;
+        updateDiv.dataset.type = updateType;
+        updateDiv.dataset.source = update.source || 'local';
+        
+        // Formatear la fecha
+        const date = new Date(update.createdAt);
+        const formattedDate = date.toLocaleDateString('es-ES', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric'
+        });
+        
+        // Añadir badge de fuente
+        const sourceBadge = `<span class="source-badge ${update.source || 'local'}">${update.source || 'Local'}</span>`;
+        
+        updateDiv.innerHTML = `
+          <div class="update-header">
+            <div class="update-title-container">
+              <h3 class="update-title">${update.title}</h3>
+              <span class="update-version">${update.version}</span>
+              ${sourceBadge}
+            </div>
+            <div class="update-date">
+              <i class="far fa-calendar-alt"></i>
+              <span>${formattedDate}</span>
+            </div>
+          </div>
+          <div class="update-content">
+            <p>${formatUpdateContent(update.content)}</p>
+          </div>
+          ${isAdmin() ? `
+          <div class="update-actions">
+            <button class="delete-btn" data-id="${update.id}" data-source="${update.source || 'local'}">
+              <i class="fas fa-trash-alt"></i> Delete
+            </button>
+          </div>
+          ` : ''}
+        `;
+        
+        // Añadir evento para eliminar
+        const deleteBtn = updateDiv.querySelector('.delete-btn');
+        if (deleteBtn) {
+          deleteBtn.addEventListener('click', function() {
+            const updateId = this.dataset.id;
+            const source = this.dataset.source;
+            deleteUpdate(updateId, source);
+          });
+        }
+        
+        return updateDiv;
+      }
+      
+      // Determinar el tipo de actualización basado en la versión
+      function getUpdateType(version) {
+        // Extraer el primer número de la versión (asumiendo formato semántico x.y.z)
+        const match = version.match(/v?(\d+)\.\d+/);
+        
+        if (match && match[1]) {
+          // Si el primer número es mayor que 0, considerarlo una actualización mayor
+          return parseInt(match[1]) > 0 ? 'major' : 'minor';
+        }
+        
+        return 'minor'; // Por defecto, considerar actualizaciones menores
+      }
+      
+      // Formatear el contenido de la actualización (convertir saltos de línea en <br>)
+      function formatUpdateContent(content) {
+        return content.replace(/\n/g, '<br>');
+      }
+      
+      // Filtrar actualizaciones
+      function filterUpdates() {
+        const updates = document.querySelectorAll('.update-item');
+        let visibleCount = 0;
+        
+        updates.forEach(update => {
+          // Primero verificar si la fuente coincide
+          const sourceMatch = update.dataset.source === currentSource;
+          
+          // Luego verificar si el filtro coincide
+          const filterMatch = currentFilter === 'all' || update.dataset.type === currentFilter;
+          
+          if (sourceMatch && filterMatch) {
+            update.style.display = 'block';
+            visibleCount++;
+          } else {
+            update.style.display = 'none';
+          }
+        });
+        
+        // Mostrar mensaje si no hay actualizaciones visibles
+        const noUpdatesMessage = document.querySelector('.no-updates-message');
+        const filterMessage = document.querySelector('.filter-message');
+        
+        if (visibleCount === 0) {
+          if (!noUpdatesMessage && !filterMessage) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'no-updates-message filter-message';
+            messageDiv.innerHTML = `
+              <i class="fas fa-filter"></i>
+              <p>No ${currentFilter} updates available in ${currentSource} storage.</p>
+            `;
+            updatesList.appendChild(messageDiv);
+          }
+        } else {
+          if (filterMessage) {
+            filterMessage.remove();
+          }
+        }
+      }
+      
+      // Añadir una nueva actualización
+      async function addUpdate(title, version, content, source) {
+        if (!isAdmin()) return false;
+        
+        const newUpdate = {
+          id: Date.now().toString(),
+          title: title,
+          version: version,
+          content: content,
+          createdAt: new Date().toISOString(),
+          author: getCurrentUser().username,
+          source: source
+        };
+        
+        let success = false;
+        
+        if (source === 'github') {
+          // Guardar en GitHub
+          success = await saveUpdateToGitHub(newUpdate);
+        } else {
+          // Guardar en localStorage
+          const updates = JSON.parse(localStorage.getItem('updates') || '[]');
+          updates.push(newUpdate);
+          localStorage.setItem('updates', JSON.stringify(updates));
+          success = true;
+        }
+        
+        if (success) {
+          // Si estamos viendo la fuente donde se guardó, recargar
+          if (currentSource === source) {
+            loadUpdates();
+          }
+          
+          return true;
+        }
+        
+        return false;
+      }
+      
+      // Eliminar una actualización
+      async function deleteUpdate(updateId, source) {
+        if (!isAdmin()) return false;
+        
+        // Animar la eliminación
+        const updateElement = document.querySelector(`.update-item[data-id="${updateId}"]`);
+        if (updateElement) {
+          updateElement.classList.add('deleting');
+        }
+        
+        let success = false;
+        
+        if (source === 'github') {
+          // Eliminar de GitHub
+          success = await deleteUpdateFromGitHub(updateId);
+        } else {
+          // Eliminar de localStorage
+          let updates = JSON.parse(localStorage.getItem('updates') || '[]');
+          updates = updates.filter(u => u.id !== updateId);
+          localStorage.setItem('updates', JSON.stringify(updates));
+          success = true;
+        }
+        
+        if (success) {
+          // Esperar a que termine la animación
+          setTimeout(() => {
+            // Recargar actualizaciones
+            loadUpdates();
+          }, 500);
+          
+          return true;
+        } else if (updateElement) {
+          updateElement.classList.remove('deleting');
+        }
+        
+        return false;
+      }
       
       // Configurar el formulario de actualizaciones
-      const updateForm = document.getElementById('update-form');
       if (updateForm) {
-        updateForm.addEventListener('submit', function(e) {
+        updateForm.addEventListener('submit', async function(e) {
           e.preventDefault();
           
           if (!isAdmin()) {
@@ -112,216 +496,45 @@
             return;
           }
           
-          addUpdate(title, version, content);
-          updateForm.reset();
-        });
-      }
-      
-      // Configurar filtros
-      const filterButtons = document.querySelectorAll('.filter-btn');
-      filterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-          // Quitar clase activa de todos los botones
-          filterButtons.forEach(btn => btn.classList.remove('active'));
+          // Obtener la fuente seleccionada
+          const source = document.querySelector('input[name="storage"]:checked').value;
           
-          // Añadir clase activa al botón clickeado
-          this.classList.add('active');
+          // Deshabilitar el botón de envío
+          const submitBtn = this.querySelector('.submit-btn');
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publishing...';
           
-          // Aplicar filtro
-          const filter = this.dataset.filter;
-          filterUpdates(filter);
-        });
-      });
-    });
-    
-    // Actualizar la interfaz según el rol del usuario
-    function updateAdminUI() {
-      const adminElements = document.querySelectorAll('.admin-only');
-      
-      if (isAdmin()) {
-        adminElements.forEach(el => {
-          el.style.display = 'block';
-        });
-      } else {
-        adminElements.forEach(el => {
-          el.style.display = 'none';
+          // Añadir la actualización
+          const success = await addUpdate(title, version, content, source);
+          
+          // Restaurar el botón
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publish Update';
+          
+          if (success) {
+            // Limpiar el formulario
+            this.reset();
+            
+            // Mostrar mensaje de éxito
+            alert('Update published successfully!');
+            
+            // Si la fuente actual no es la misma que donde se guardó, preguntar si quiere cambiar
+            if (currentSource !== source) {
+              if (confirm(`Your update was saved to ${source}. Do you want to switch to view ${source} updates?`)) {
+                switchSource(source);
+              }
+            }
+          } else {
+            alert('Error publishing update. Please try again.');
+          }
         });
       }
-    }
-    
-    // Cargar actualizaciones desde localStorage
-    function loadUpdates() {
-      const updatesContainer = document.getElementById('updates-list');
-      const updates = JSON.parse(localStorage.getItem('updates') || '[]');
       
-      // Limpiar el contenedor
-      updatesContainer.innerHTML = '';
-      
-      if (updates.length === 0) {
-        updatesContainer.innerHTML = `
-          <div class="no-updates-message">
-            <i class="fas fa-exclamation-circle"></i>
-            <p>No updates available yet.</p>
-          </div>
-        `;
-        return;
-      }
-      
-      // Ordenar actualizaciones por fecha (más recientes primero)
-      updates.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      
-      // Mostrar cada actualización
-      updates.forEach(update => {
-        const updateElement = createUpdateElement(update);
-        updatesContainer.appendChild(updateElement);
-      });
-    }
-    
-    // Crear elemento de actualización
-    function createUpdateElement(update) {
-      const updateDiv = document.createElement('div');
-      updateDiv.className = `update-item ${getUpdateType(update.version)}`;
-      updateDiv.dataset.id = update.id;
-      updateDiv.dataset.type = getUpdateType(update.version);
-      
-      // Formatear la fecha
-      const date = new Date(update.createdAt);
-      const formattedDate = date.toLocaleDateString('es-ES', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric'
-      });
-      
-      updateDiv.innerHTML = `
-        <div class="update-header">
-          <div class="update-title-container">
-            <h3 class="update-title">${update.title}</h3>
-            <span class="update-version">${update.version}</span>
-          </div>
-          <div class="update-date">
-            <i class="far fa-calendar-alt"></i>
-            <span>${formattedDate}</span>
-          </div>
-        </div>
-        <div class="update-content">
-          <p>${formatUpdateContent(update.content)}</p>
-        </div>
-        ${isAdmin() ? `
-        <div class="update-actions">
-          <button class="delete-btn" onclick="deleteUpdate('${update.id}')">
-            <i class="fas fa-trash-alt"></i> Delete
-          </button>
-        </div>
-        ` : ''}
-      `;
-      
-      return updateDiv;
-    }
-    
-    // Determinar el tipo de actualización basado en la versión
-    function getUpdateType(version) {
-      // Extraer el primer número de la versión (asumiendo formato semántico x.y.z)
-      const match = version.match(/v?(\d+)\.\d+/);
-      
-      if (match && match[1]) {
-        // Si el primer número es mayor que 0, considerarlo una actualización mayor
-        return parseInt(match[1]) > 0 ? 'major' : 'minor';
-      }
-      
-      return 'minor'; // Por defecto, considerar actualizaciones menores
-    }
-    
-    // Formatear el contenido de la actualización (convertir saltos de línea en <br>)
-    function formatUpdateContent(content) {
-      return content.replace(/\n/g, '<br>');
-    }
-    
-    // Añadir una nueva actualización
-    function addUpdate(title, version, content) {
-      if (!isAdmin()) return;
-      
-      const updates = JSON.parse(localStorage.getItem('updates') || '[]');
-      
-      const newUpdate = {
-        id: Date.now().toString(),
-        title: title,
-        version: version,
-        content: content,
-        createdAt: new Date().toISOString(),
-        author: getCurrentUser().username
-      };
-      
-      updates.push(newUpdate);
-      localStorage.setItem('updates', JSON.stringify(updates));
-      
-      // Recargar actualizaciones
+      // Inicializar
+      updateAdminUI();
+      updateGitHubStatus();
       loadUpdates();
-      
-      // Mostrar animación
-      const updatesContainer = document.getElementById('updates-list');
-      const firstUpdate = updatesContainer.querySelector('.update-item');
-      if (firstUpdate) {
-        firstUpdate.classList.add('highlight');
-        setTimeout(() => {
-          firstUpdate.classList.remove('highlight');
-        }, 1500);
-      }
-    }
-    
-    // Eliminar una actualización
-    function deleteUpdate(updateId) {
-      if (!isAdmin()) return;
-      
-      let updates = JSON.parse(localStorage.getItem('updates') || '[]');
-      
-      // Animar la eliminación
-      const updateElement = document.querySelector(`.update-item[data-id="${updateId}"]`);
-      if (updateElement) {
-        updateElement.classList.add('deleting');
-        
-        setTimeout(() => {
-          // Filtrar la actualización
-          updates = updates.filter(u => u.id !== updateId);
-          localStorage.setItem('updates', JSON.stringify(updates));
-          
-          // Recargar actualizaciones
-          loadUpdates();
-        }, 500);
-      }
-    }
-    
-    // Filtrar actualizaciones
-    function filterUpdates(filter) {
-      const updates = document.querySelectorAll('.update-item');
-      
-      updates.forEach(update => {
-        if (filter === 'all' || update.dataset.type === filter) {
-          update.style.display = 'block';
-        } else {
-          update.style.display = 'none';
-        }
-      });
-      
-      // Mostrar mensaje si no hay actualizaciones visibles
-      const visibleUpdates = document.querySelectorAll('.update-item[style="display: block"]');
-      const noUpdatesMessage = document.querySelector('.no-updates-message');
-      
-      if (visibleUpdates.length === 0 && !noUpdatesMessage) {
-        const updatesContainer = document.getElementById('updates-list');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'no-updates-message filter-message';
-        messageDiv.innerHTML = `
-          <i class="fas fa-filter"></i>
-          <p>No ${filter} updates available.</p>
-        `;
-        updatesContainer.appendChild(messageDiv);
-      } else if (visibleUpdates.length > 0) {
-        const filterMessage = document.querySelector('.filter-message');
-        if (filterMessage) {
-          filterMessage.remove();
-        }
-      }
-    }
+    });
   </script>
 </body>
 </html>

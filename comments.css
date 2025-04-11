@@ -19,6 +19,68 @@
   font-size: 16px;
 }
 
+/* Configuración de GitHub */
+.github-config-container {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.github-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-indicator.connected {
+  background-color: #4caf50;
+  box-shadow: 0 0 5px #4caf50;
+}
+
+.status-indicator.disconnected {
+  background-color: #f44336;
+  box-shadow: 0 0 5px #f44336;
+}
+
+.github-btn {
+  padding: 8px 15px;
+  background-color: #24292e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.github-btn:hover {
+  background-color: #2c3136;
+}
+
+.github-btn.disconnect {
+  background-color: #f44336;
+}
+
+.github-btn.disconnect:hover {
+  background-color: #d32f2f;
+}
+
 /* Formulario de comentarios */
 .comment-form-container {
   background-color: #fff;
@@ -67,8 +129,28 @@
   outline: none;
 }
 
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.storage-options {
+  display: flex;
+  gap: 15px;
+}
+
+.storage-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
 .submit-btn {
-  align-self: flex-end;
   padding: 10px 20px;
   background-color: var(--primary-color);
   color: white;
@@ -88,6 +170,12 @@
   transform: translateY(-2px);
 }
 
+.submit-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* Lista de comentarios */
 .comments-container {
   background-color: #fff;
@@ -97,14 +185,46 @@
 }
 
 .comments-container h3 {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   color: #333;
   font-size: 18px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-bottom: 10px;
+}
+
+/* Pestañas de fuente de comentarios */
+.comments-source-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
   border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.source-tab {
+  padding: 8px 15px;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.source-tab:hover:not(.disabled) {
+  background-color: #f5f8ff;
+}
+
+.source-tab.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.source-tab.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .comment-item {
@@ -140,7 +260,8 @@
   color: var(--primary-color);
 }
 
-.author-badge {
+.author-badge,
+.source-badge {
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
@@ -150,6 +271,20 @@
 .author-badge.admin {
   background-color: rgba(0, 102, 204, 0.1);
   color: var(--primary-color);
+}
+
+.source-badge {
+  margin-left: 5px;
+}
+
+.source-badge.local {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #388e3c;
+}
+
+.source-badge.github {
+  background-color: rgba(36, 41, 46, 0.1);
+  color: #24292e;
 }
 
 .comment-date {
@@ -189,7 +324,9 @@
 }
 
 /* Mensaje cuando no hay comentarios */
-.no-comments-message {
+.no-comments-message,
+.loading-indicator,
+.error-message {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -197,10 +334,16 @@
   color: #888;
 }
 
-.no-comments-message i {
+.no-comments-message i,
+.loading-indicator i,
+.error-message i {
   font-size: 40px;
   margin-bottom: 15px;
   opacity: 0.5;
+}
+
+.error-message i {
+  color: #d32f2f;
 }
 
 /* Mensaje para iniciar sesión */
@@ -312,8 +455,22 @@
     gap: 5px;
   }
 
+  .github-config-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .github-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .submit-btn {
-    align-self: center;
     width: 100%;
     justify-content: center;
   }

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CombatSurf - RAP Price</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="rap-price.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="images/logo.png" alt="CombatSurf Logo" id="logo-img">
+    </div>
+    <nav>
+      <ul class="nav-links">
+        <li class="auth-status logged-out"><a href="login.html"><i class="fas fa-user"></i> log/reg</a></li>
+        <li class="auth-status logged-in">
+          <a href="#"><i class="fas fa-user-circle"></i> <span class="username">User</span> <i class="fas fa-caret-down"></i></a>
+          <div class="dropdown-menu">
+            <a href="#" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </li>
+        <li><a href="index.html"><i class="fas fa-home"></i> home<br>home wb</a></li>
+        <li><a href="rap-price.html" class="active"><i class="fas fa-tags"></i> rap<br>price</a></li>
+        <li><a href="skins.html"><i class="fas fa-palette"></i> index skins<br>value & Previews</a></li>
+        <li><a href="https://discord.gg/combatsurf" target="_blank"><i class="fab fa-discord"></i> discord comunity<br>roblox group</a></li>
+        <li><a href="updates.html"><i class="fas fa-sync-alt"></i> updates<br>changelog</a></li>
+        <li><a href="comments.html"><i class="fas fa-comments"></i> comments<br>people's comments</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="rap-price-section">
+      <h1>RAP Price List</h1>
+      <p class="section-description">Current prices and values for CombatSurf items</p>
+      
+      <!-- Configuración de GitHub -->
+      <div class="github-config-container">
+        <div class="github-status">
+          <span id="github-status-indicator" class="status-indicator"></span>
+          <span id="github-status-text">GitHub Status: Not Connected</span>
+        </div>
+        <button id="github-connect-btn" class="github-btn">
+          <i class="fab fa-github"></i> Connect to GitHub
+        </button>
+      </div>
+      
+      <!-- Formulario para añadir precios (solo para administradores) -->
+      <div class="auth-status logged-in admin-only">
+        <div class="rap-form-container">
+          <h3><i class="fas fa-plus-circle"></i> Add New RAP Price</h3>
+          <form id="rap-form">
+            <div class="form-group">
+              <label for="rap-item-name">Item Name</label>
+              <input type="text" id="rap-item-name" placeholder="Item name" required>
+            </div>
+            <div class="form-group">
+              <label for="rap-item-type">Item Type</label>
+              <select id="rap-item-type" required>
+                <option value="">Select type</option>
+                <option value="weapon">Weapon</option>
+                <option value="skin">Skin</option>
+                <option value="accessory">Accessory</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="rap-item-price">Price (R$)</label>
+                <input type="number" id="rap-item-price" min="0" placeholder="Price in Robux" required>
+              </div>
+              <div class="form-group">
+                <label for="rap-item-value">Value (R$)</label>
+                <input type="number" id="rap-item-value" min="0" placeholder="Value in Robux" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="rap-item-description">Description</label>
+              <textarea id="rap-item-description" placeholder="Item description (optional)"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="rap-item-image">Image URL (optional)</label>
+              <input type="url" id="rap-item-image" placeholder="https://example.com/image.png">
+            </div>
+            <div class="form-actions">
+              <div class="storage-options">
+                <label>
+                  <input type="radio" name="storage" value="local" checked> Local Storage
+                </label>
+                <label>
+                  <input type="radio" name="storage" value="github"> GitHub
+                </label>
+              </div>
+              <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Add RAP Price</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Lista de precios RAP -->
+      <div class="rap-container">
+        <div class="rap-header">
+          <h3><i class="fas fa-list"></i> RAP Price List</h3>
+          <div class="rap-source-tabs">
+            <button class="source-tab active" data-source="local">Local Prices</button>
+            <button class="source-tab" data-source="github">GitHub Prices</button>
+          </div>
+        </div>
+        
+        <div class="rap-filter">
+          <div class="search-box">
+            <input type="text" id="rap-search" placeholder="Search items...">
+            <i class="fas fa-search"></i>
+          </div>
+          <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="weapon">Weapons</button>
+            <button class="filter-btn" data-filter="skin">Skins</button>
+            <button class="filter-btn" data-filter="accessory">Accessories</button>
+          </div>
+        </div>
+        
+        <div class="rap-list-container">
+          <table class="rap-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Type</th>
+                <th>Price (R$)</th>
+                <th>Value (R$)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="rap-list">
+              <!-- Los precios se cargarán dinámicamente aquí -->
+            </tbody>
+          </table>
+          
+          <div id="rap-empty-message" class="no-items-message">
+            <i class="fas fa-tag"></i>
+            <p>No RAP prices available yet.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Dev Website Brownuser_ <i class="fas fa-code"></i></p>
+  </footer>
+
+  <script src="auth.js"></script>
+  <script src="github-api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Variables para el estado actual
+      let currentSource = 'local';
+      let currentFilter = 'all';
+      let searchTerm = '';
+      
+      // Elementos de la interfaz
+      const rapList = document.getElementById('rap-list');
+      const rapEmptyMessage = document.getElementById('rap-empty-message');
+      const rapForm = document.getElementById('rap-form');
+      const rapSearch = document.getElementById('rap-search');
+      const githubConnectBtn = document.getElementById('github-connect-btn');
+      const githubStatusIndicator = document.getElementById('github-status-indicator');
+      const githubStatusText = document.getElementById('github-status-text');
+      const sourceTabs = document.querySelectorAll('.source-tab');
+      const filterButtons = document.querySelectorAll('.filter-btn');
+      
+      // Actualizar el estado de GitHub
+      function updateGitHubStatus() {
+        if (isGitHubAuthenticated()) {
+          githubStatusIndicator.className = 'status-indicator connected';
+          githubStatusText.textContent = `GitHub Status: Connected to ${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`;
+          githubConnectBtn.textContent = 'Disconnect from GitHub';
+          githubConnectBtn.classList.add('disconnect');
+          
+          // Habilitar la opción de GitHub
+          document.querySelector('input[value="github"]').disabled = false;
+          
+          // Habilitar la pestaña de GitHub
+          document.querySelector('.source-tab[data-source="github"]').classList.remove('disabled');
+        } else {
+          githubStatusIndicator.className = 'status-indicator disconnected';
+          githubStatusText.textContent = 'GitHub Status: Not Connected';
+          githubConnectBtn.innerHTML = '<i class="fab fa-github"></i> Connect to GitHub';
+          githubConnectBtn.classList.remove('disconnect');
+          
+          // Deshabilitar la opción de GitHub
+          document.querySelector('input[value="github"]').disabled = true;
+          
+          // Deshabilitar la pestaña de GitHub
+          document.querySelector('.source-tab[data-source="github"]').classList.add('disabled');
+          
+          // Si la pestaña de GitHub está activa, cambiar a local
+          if (currentSource === 'github') {
+            switchSource('local');
+          }
+        }
+      }
+      
+      // Conectar/Desconectar de GitHub
+      githubConnectBtn.addEventListener('click', function() {
+        if (isGitHubAuthenticated()) {
+          // Desconectar
+          sessionStorage.removeItem('githubToken');
+          localStorage.removeItem('githubConfig');
+          window.location.reload();
+        } else {
+          // Conectar
+          authenticateWithGitHub();
+        }
+      });
+      
+      // Cambiar entre fuentes de precios
+      sourceTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const source = this.dataset.source;
+          
+          // Verificar si la pestaña está deshabilitada
+          if (this.classList.contains('disabled')) {
+            return;
+          }
+          
+          switchSource(source);
+        });
+      });
+      
+      function switchSource(source) {
+        // Actualizar pestañas
+        sourceTabs.forEach(tab => {
+          if (tab.dataset.source === source) {
+            tab.classList.add('active');
+          } else {
+            tab.classList.remove('active');
+          }
+        });
+        
+        // Actualizar fuente actual
+        currentSource = source;
+        
+        // Cargar precios
+        loadRapPrices();
+      }
+      
+      // Configurar filtros
+      filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // Quitar clase activa de todos los botones
+          filterButtons.forEach(btn => btn.classList.remove('active'));
+          
+          // Añadir clase activa al botón clickeado
+          this.classList.add('active');
+          
+          // Aplicar filtro
+          currentFilter = this.dataset.filter;
+          applyFilters();
+        });
+      });
+      
+      // Configurar búsqueda
+      rapSearch.addEventListener('input', function() {
+        searchTerm = this.value.toLowerCase().trim();
+        applyFilters();
+      });
+      
+      // Cargar precios RAP
+      async function loadRapPrices() {
+        // Mostrar indicador de carga
+        rapList.innerHTML = '';
+        rapEmptyMessage.innerHTML = `
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Loading RAP prices...</p>
+        `;
+        rapEmptyMessage.style.display = 'flex';
+        
+        try {
+          let rapPrices = [];
+          
+          if (currentSource === 'local') {
+            // Cargar desde localStorage
+            rapPrices = JSON.parse(localStorage.getItem('rapPrices') || '[]');
+          } else if (currentSource === 'github' && isGitHubAuthenticated()) {
+            // Cargar desde GitHub
+            rapPrices = await loadRapPricesFromGitHub();
+          }
+          
+          // Limpiar la tabla
+          rapList.innerHTML = '';
+          
+          if (rapPrices.length === 0) {
+            rapEmptyMessage.innerHTML = `
+              <i class="fas fa-tag"></i>
+              <p>No RAP prices available yet.</p>
+            `;
+            rapEmptyMessage.style.display = 'flex';
+            return;
+          }
+          
+          // Ordenar precios por tipo y nombre
+          rapPrices.sort((a, b) => {
+            if (a.type !== b.type) {
+              return a.type.localeCompare(b.type);
+            }
+            return a.name.localeCompare(b.name);
+          });
+          
+          // Añadir la fuente a cada precio si no la tiene
+          rapPrices.forEach(price => {
+            if (!price.source) {
+              price.source = currentSource;
+            }
+          });
+          
+          // Mostrar cada precio
+          rapPrices.forEach(price => {
+            const row = createRapPriceRow(price);
+            rapList.appendChild(row);
+          });
+          
+          // Aplicar filtros actuales
+          applyFilters();
+        } catch (error) {
+          console.error('Error loading RAP prices:', error);
+          rapEmptyMessage.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Error loading RAP prices. Please try again later.</p>
+          `;
+          rapEmptyMessage.style.display = 'flex';
+        }
+      }
+      
+      // Crear fila de precio RAP
+      function createRapPriceRow(price) {
+        const row = document.createElement('tr');
+        row.className = 'rap-item';
+        row.dataset.id = price.id;
+        row.dataset.type = price.type;
+        row.dataset.source = price.source || 'local';
+        
+        // Crear celda de item con imagen si está disponible
+        const itemCell = document.createElement('td');
+        itemCell.className = 'item-cell';
+        
+        if (price.imageUrl) {
+          itemCell.innerHTML = `
+            <div class="item-info">
+              <img src="${price.imageUrl}" alt="${price.name}" class="item-image">
+              <span class="item-name">${price.name}</span>
+            </div>
+          `;
+        } else {
+          itemCell.innerHTML = `
+            <div class="item-info">
+              <div class="item-image-placeholder">
+                <i class="fas fa-image"></i>
+              </div>
+              <span class="item-name">${price.name}</span>
+            </div>
+          `;
+        }
+        
+        // Crear celda de tipo
+        const typeCell = document.createElement('td');
+        typeCell.className = 'type-cell';
+        typeCell.innerHTML = `<span class="type-badge ${price.type}">${price.type}</span>`;
+        
+        // Crear celda de precio
+        const priceCell = document.createElement('td');
+        priceCell.className = 'price-cell';
+        priceCell.innerHTML = `<span class="price-value">${price.price.toLocaleString()}</span>`;
+        
+        // Crear celda de valor
+        const valueCell = document.createElement('td');
+        valueCell.className = 'value-cell';
+        valueCell.innerHTML = `<span class="value-value">${price.value.toLocaleString()}</span>`;
+        
+        // Crear celda de acciones
+        const actionsCell = document.createElement('td');
+        actionsCell.className = 'actions-cell';
+        
+        if (isAdmin()) {
+          actionsCell.innerHTML = `
+            <button class="view-btn" data-id="${price.id}" data-source="${price.source || 'local'}">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="delete-btn" data-id="${price.id}" data-source="${price.source || 'local'}">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          `;
+        } else {
+          actionsCell.innerHTML = `
+            <button class="view-btn" data-id="${price.id}" data-source="${price.source || 'local'}">
+              <i class="fas fa-eye"></i>
+            </button>
+          `;
+        }
+        
+        // Añadir celdas a la fila
+        row.appendChild(itemCell);
+        row.appendChild(typeCell);
+        row.appendChild(priceCell);
+        row.appendChild(valueCell);
+        row.appendChild(actionsCell);
+        
+        // Añadir eventos
+        const viewBtn = row.querySelector('.view-btn');
+        if (viewBtn) {
+          viewBtn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            viewRapPrice(id);
+          });
+        }
+        
+        const deleteBtn = row.querySelector('.delete-btn');
+        if (deleteBtn) {
+          deleteBtn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const source = this.dataset.source;
+            deleteRapPrice(id, source);
+          });
+        }
+        
+        return row;
+      }
+      
+      // Aplicar filtros a la lista
+      function applyFilters() {
+        const rows = document.querySelectorAll('.rap-item');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+          // Verificar si la fuente coincide
+          const sourceMatch = row.dataset.source === currentSource;
+          
+          // Verificar si el filtro de tipo coincide
+          const typeMatch = currentFilter === 'all' || row.dataset.type === currentFilter;
+          
+          // Verificar si coincide con la búsqueda
+          const itemName = row.querySelector('.item-name').textContent.toLowerCase();
+          const searchMatch = searchTerm === '' || itemName.includes(searchTerm);
+          
+          if (sourceMatch && typeMatch && searchMatch) {
+            row.style.display = '';
+            visibleCount++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+        
+        // Mostrar mensaje si no hay elementos visibles
+        if (visibleCount === 0) {
+          rapEmptyMessage.innerHTML = `
+            <i class="fas fa-filter"></i>
+            <p>No matching items found.</p>
+          `;
+          rapEmptyMessage.style.display = 'flex';
+        } else {
+          rapEmptyMessage.style.display = 'none';
+        }
+      }
+      
+      // Ver detalles de un precio RAP
+      function viewRapPrice(id) {
+        let rapPrice;
+        
+        if (currentSource === 'local') {
+          const rapPrices = JSON.parse(localStorage.getItem('rapPrices') || '[]');
+          rapPrice = rapPrices.find(p => p.id === id);
+        } else {
+          // En una implementación real, aquí se obtendría el precio de GitHub
+          // Por ahora, simplemente buscamos en los elementos de la tabla
+          const row = document.querySelector(`.rap-item[data-id="${id}"]`);
+          if (row) {
+            const name = row.querySelector('.item-name').textContent;
+            const type = row.dataset.type;
+            const price = parseInt(row.querySelector('.price-value').textContent.replace(/,/g, ''));
+            const value = parseInt(row.querySelector('.value-value').textContent.replace(/,/g, ''));
+            
+            rapPrice = { id, name, type, price, value, description: 'Details not available in this view.' };
+          }
+        }
+        
+        if (rapPrice) {
+          // Crear modal para mostrar detalles
+          const modal = document.createElement('div');
+          modal.className = 'rap-modal';
+          
+          modal.innerHTML = `
+            <div class="rap-modal-content">
+              <span class="close-modal">&times;</span>
+              <h3>${rapPrice.name}</h3>
+              <div class="rap-modal-details">
+                ${rapPrice.imageUrl ? `<img src="${rapPrice.imageUrl}" alt="${rapPrice.name}" class="modal-image">` : ''}
+                <div class="details-grid">
+                  <div class="detail-item">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value type-badge ${rapPrice.type}">${rapPrice.type}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Price:</span>
+                    <span class="detail-value">${rapPrice.price.toLocaleString()} R$</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Value:</span>
+                    <span class="detail-value">${rapPrice.value.toLocaleString()} R$</span>
+                  </div>
+                  ${rapPrice.description ? `
+                  <div class="detail-item full-width">
+                    <span class="detail-label">Description:</span>
+                    <p class="detail-description">${rapPrice.description}</p>
+                  </div>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+          
+          document.body.appendChild(modal);
+          
+          // Mostrar el modal con animación
+          setTimeout(() => {
+            modal.classList.add('show');
+          }, 10);
+          
+          // Cerrar el modal
+          const closeBtn = modal.querySelector('.close-modal');
+          closeBtn.addEventListener('click', function() {
+            modal.classList.remove('show');
+            setTimeout(() => {
+              document.body.removeChild(modal);
+            }, 300);
+          });
+          
+          // Cerrar al hacer clic fuera del contenido
+          modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+              modal.classList.remove('show');
+              setTimeout(() => {
+                document.body.removeChild(modal);
+              }, 300);
+            }
+          });
+        }
+      }
+      
+      // Añadir un nuevo precio RAP
+      async function addRapPrice(data, source) {
+        if (!isAdmin()) return false;
+        
+        const newRapPrice = {
+          id: Date.now().toString(),
+          name: data.name,
+          type: data.type,
+          price: data.price,
+          value: data.value,
+          description: data.description,
+          imageUrl: data.imageUrl,
+          createdAt: new Date().toISOString(),
+          author: getCurrentUser().username,
+          source: source
+        };
+        
+        let success = false;
+        
+        if (source === 'github') {
+          // Guardar en GitHub
+          success = await saveRapPriceToGitHub(newRapPrice);
+        } else {
+          // Guardar en localStorage
+          const rapPrices = JSON.parse(localStorage.getItem('rapPrices') || '[]');
+          rapPrices.push(newRapPrice);
+          localStorage.setItem('rapPrices', JSON.stringify(rapPrices));
+          success = true;
+        }
+        
+        if (success) {
+          // Si estamos viendo la fuente donde se guardó, recargar
+          if (currentSource === source) {
+            loadRapPrices();
+          }
+          
+          return true;
+        }
+        
+        return false;
+      }
+      
+      // Eliminar un precio RAP
+      async function deleteRapPrice(id, source) {
+        if (!isAdmin()) return false;
+        
+        // Animar la eliminación
+        const row = document.querySelector(`.rap-item[data-id="${id}"]`);
+        if (row) {
+          row.classList.add('deleting');
+        }
+        
+        let success = false;
+        
+        if (source === 'github') {
+          // Eliminar de GitHub
+          success = await deleteRapPriceFromGitHub(id);
+        } else {
+          // Eliminar de localStorage
+          let rapPrices = JSON.parse(localStorage.getItem('rapPrices') || '[]');
+          rapPrices = rapPrices.filter(p => p.id !== id);
+          localStorage.setItem('rapPrices', JSON.stringify(rapPrices));
+          success = true;
+        }
+        
+        if (success) {
+          // Esperar a que termine la animación
+          setTimeout(() => {
+            // Recargar precios
+            loadRapPrices();
+          }, 500);
+          
+          return true;
+        } else if (row) {
+          row.classList.remove('deleting');
+        }
+        
+        return false;
+      }
+      
+      // Configurar el formulario de precios RAP
+      if (rapForm) {
+        rapForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          if (!isAdmin()) {
+            alert('Only administrators can add RAP prices');
+            return;
+          }
+          
+          const name = document.getElementById('rap-item-name').value.trim();
+          const type = document.getElementById('rap-item-type').value;
+          const price = parseInt(document.getElementById('rap-item-price').value);
+          const value = parseInt(document.getElementById('rap-item-value').value);
+          const description = document.getElementById('rap-item-description').value.trim();
+          const imageUrl = document.getElementById('rap-item-image').value.trim();
+          
+          if (!name || !type || isNaN(price) || isNaN(value)) {
+            alert('Please fill in all required fields');
+            return;
+          }
+          
+          // Obtener la fuente seleccionada
+          const source = document.querySelector('input[name="storage"]:checked').value;
+          
+          // Deshabilitar el botón de envío
+          const submitBtn = this.querySelector('.submit-btn');
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+          
+          // Añadir el precio
+          const success = await addRapPrice({
+            name,
+            type,
+            price,
+            value,
+            description,
+            imageUrl: imageUrl || null
+          }, source);
+          
+          // Restaurar el botón
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Add RAP Price';
+          
+          if (success) {
+            // Limpiar el formulario
+            this.reset();
+            
+            // Mostrar mensaje de éxito
+            alert('RAP price added successfully!');
+            
+            // Si la fuente actual no es la misma que donde se guardó, preguntar si quiere cambiar
+            if (currentSource !== source) {
+              if (confirm(`Your RAP price was saved to ${source}. Do you want to switch to view ${source} prices?`)) {
+                switchSource(source);
+              }
+            }
+          } else {
+            alert('Error adding RAP price. Please try again.');
+          }
+        });
+      }
+      
+      // Inicializar
+      updateAdminUI();
+      updateGitHubStatus();
+      loadRapPrices();
+    });
+  </script>
+</body>
+</html>
