@@ -36,7 +36,7 @@
       
       <div id="login-form" class="auth-form active">
         <h2>Login to your account</h2>
-        <form>
+        <form id="login-form-element">
           <div class="form-group">
             <label for="login-username"><i class="fas fa-user"></i> Username</label>
             <input type="text" id="login-username" required>
@@ -45,20 +45,17 @@
             <label for="login-password"><i class="fas fa-lock"></i> Password</label>
             <input type="password" id="login-password" required>
           </div>
+          <div id="login-message" class="message-box"></div>
           <button type="submit" class="auth-btn">Login <i class="fas fa-arrow-right"></i></button>
         </form>
       </div>
       
       <div id="register-form" class="auth-form">
         <h2>Create a new account</h2>
-        <form>
+        <form id="register-form-element">
           <div class="form-group">
             <label for="register-username"><i class="fas fa-user"></i> Username</label>
             <input type="text" id="register-username" required>
-          </div>
-          <div class="form-group">
-            <label for="register-email"><i class="fas fa-envelope"></i> Email</label>
-            <input type="email" id="register-email" required>
           </div>
           <div class="form-group">
             <label for="register-password"><i class="fas fa-lock"></i> Password</label>
@@ -68,6 +65,7 @@
             <label for="register-confirm"><i class="fas fa-check-circle"></i> Confirm Password</label>
             <input type="password" id="register-confirm" required>
           </div>
+          <div id="register-message" class="message-box"></div>
           <button type="submit" class="auth-btn">Register <i class="fas fa-user-plus"></i></button>
         </form>
       </div>
@@ -112,7 +110,157 @@
         document.querySelector('.auth-container').style.opacity = '1';
         document.querySelector('.auth-container').style.transform = 'translateY(0)';
       }, 300);
+
+      // Inicializar la cuenta de administrador si no existe
+      initializeAdminAccount();
+
+      // Configurar los formularios
+      setupLoginForm();
+      setupRegisterForm();
     });
+
+    // Inicializar la cuenta de administrador
+    function initializeAdminAccount() {
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      
+      // Verificar si ya existe la cuenta de administrador
+      const adminExists = users.some(user => user.username === 'Akk7');
+      
+      if (!adminExists) {
+        // Crear la cuenta de administrador
+        users.push({
+          username: 'Akk7',
+          password: '123456',
+          role: 'admin',
+          createdAt: new Date().toISOString()
+        });
+        
+        // Guardar en localStorage
+        localStorage.setItem('users', JSON.stringify(users));
+        console.log('Admin account created: Akk7');
+      }
+    }
+
+    // Configurar el formulario de inicio de sesión
+    function setupLoginForm() {
+      const loginForm = document.getElementById('login-form-element');
+      const messageBox = document.getElementById('login-message');
+      
+      loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
+        
+        // Validar campos
+        if (!username || !password) {
+          showMessage(messageBox, 'Please fill in all fields', 'error');
+          return;
+        }
+        
+        // Obtener usuarios del localStorage
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        // Buscar el usuario
+        const user = users.find(u => u.username === username && u.password === password);
+        
+        if (user) {
+          // Guardar la sesión del usuario
+          localStorage.setItem('currentUser', JSON.stringify({
+            username: user.username,
+            role: user.role || 'user'
+          }));
+          
+          showMessage(messageBox, 'Login successful! Redirecting...', 'success');
+          
+          // Redireccionar después de un breve retraso
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1500);
+        } else {
+          showMessage(messageBox, 'Invalid username or password', 'error');
+          loginForm.querySelector('button').classList.add('shake');
+          setTimeout(() => {
+            loginForm.querySelector('button').classList.remove('shake');
+          }, 500);
+        }
+      });
+    }
+
+    // Configurar el formulario de registro
+    function setupRegisterForm() {
+      const registerForm = document.getElementById('register-form-element');
+      const messageBox = document.getElementById('register-message');
+      
+      registerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('register-username').value;
+        const password = document.getElementById('register-password').value;
+        const confirmPassword = document.getElementById('register-confirm').value;
+        
+        // Validar campos
+        if (!username || !password || !confirmPassword) {
+          showMessage(messageBox, 'Please fill in all fields', 'error');
+          return;
+        }
+        
+        if (password !== confirmPassword) {
+          showMessage(messageBox, 'Passwords do not match', 'error');
+          return;
+        }
+        
+        // Obtener usuarios del localStorage
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        
+        // Verificar si el usuario ya existe
+        if (users.some(u => u.username === username)) {
+          showMessage(messageBox, 'Username already exists', 'error');
+          return;
+        }
+        
+        // Crear nuevo usuario
+        const newUser = {
+          username,
+          password,
+          role: 'user',
+          createdAt: new Date().toISOString()
+        };
+        
+        // Añadir el nuevo usuario
+        users.push(newUser);
+        
+        // Guardar en localStorage
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        showMessage(messageBox, 'Registration successful! You can now login.', 'success');
+        
+        // Limpiar el formulario
+        registerForm.reset();
+        
+        // Cambiar a la pestaña de login después de un breve retraso
+        setTimeout(() => {
+          showTab('login');
+        }, 1500);
+      });
+    }
+
+    // Mostrar mensajes en los formularios
+    function showMessage(element, message, type) {
+      element.textContent = message;
+      element.className = 'message-box ' + type;
+      element.style.opacity = '0';
+      
+      // Animar la aparición del mensaje
+      setTimeout(() => {
+        element.style.opacity = '1';
+      }, 10);
+      
+      // Ocultar el mensaje después de un tiempo
+      setTimeout(() => {
+        element.style.opacity = '0';
+      }, 5000);
+    }
   </script>
 </body>
 </html>
